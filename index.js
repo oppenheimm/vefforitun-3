@@ -42,8 +42,8 @@ const songs = [
 ];
 
 const playlists = [
-  { id: 1, name: "Hot Hits Iceland", songIds: [1, 2, 3, 4] },
-  { id: 2, name: "Workout Playlist", songIds: [2, 5, 6] },
+  { id: 1, name: "Hot Hits Iceland", songIds: [1, 3, 4] },
+  { id: 2, name: "Workout Playlist", songIds: [5, 6] },
   { id: 3, name: "Lo-Fi Study", songIds: [] },
 ];
 
@@ -107,12 +107,136 @@ app.post("/api/v1/songs", (req, res) => {
   res.status(201).json(newSong);
 });
 
+// Update a song (partial update)
+app.patch("/api/v1/songs/:id", (req, res) => {
+  const songId = parseInt(req.params.id);
+  const { title, artist } = req.body;
+
+  // Find song by ID
+  const song = songs.find((s) => s.id === songId);
+  if (!song) {
+    return res.status(404).json({ error: "Song not found." });
+  }
+
+  // Ensure at least one field is provided
+  if (!title && !artist) {
+    return res.status(400).json({ error: "At least one field (title or artist) is required." });
+  }
+
+  // Update song fields (if provided)
+  if (title) song.title = title;
+  if (artist) song.artist = artist;
+
+  res.json(song);
+});
+
+
+
+// Delete a song
+app.delete("/api/v1/songs/:id", (req, res) => {
+  const songId = parseInt(req.params.id);
+
+  // Find song index
+  const songIndex = songs.findIndex((s) => s.id === songId);
+  if (songIndex === -1) {
+    return res.status(404).json({ error: "Song not found." });
+  }
+
+  // Check if the song exists in any playlist
+  const songInPlaylist = playlists.some((playlist) => playlist.songIds.includes(songId));
+  if (songInPlaylist) {
+    return res.status(400).json({ error: "Cannot delete song. It is used in a playlist." });
+  }
+
+  // Remove the song from the array
+  const deletedSong = songs.splice(songIndex, 1)[0];
+  res.json(deletedSong);
+});
+
 
 /* --------------------------
 
       PLAYLISTS ENDPOINTS    
 
 -------------------------- */
+
+// Get all playlists
+app.get("/api/v1/playlists", (req, res) => {
+  res.json(playlists);
+});
+
+// Get a specific playlist (with full song details)
+app.get("/api/v1/playlists/:id", (req, res) => {
+  const playlistId = parseInt(req.params.id);
+
+  // Find the playlist
+  const playlist = playlists.find((p) => p.id === playlistId);
+  if (!playlist) {
+    return res.status(404).json({ error: "Playlist not found." });
+  }
+
+  // Map songIds to full song objects
+  const playlistWithSongs = {
+    ...playlist,
+    songs: playlist.songIds.map((songId) => songs.find((song) => song.id === songId) || null).filter(Boolean),
+  };
+
+  res.json(playlistWithSongs);
+});
+
+// Create a new playlist
+app.post("/api/v1/playlists", (req, res) => {
+  const { name } = req.body;
+
+  // Validate request body
+  if (!name) {
+    return res.status(400).json({ error: "Playlist name is required." });
+  }
+
+  // Check for duplicate playlist names (case-insensitive)
+  const exists = playlists.some((p) => p.name.toLowerCase() === name.toLowerCase());
+  if (exists) {
+    return res.status(400).json({ error: "Playlist name already exists." });
+  }
+
+  // Create new playlist with auto-increment ID
+  const newPlaylist = {
+    id: playlists.length ? playlists[playlists.length - 1].id + 1 : 1,
+    name,
+    songIds: [],
+  };
+
+  playlists.push(newPlaylist);
+  res.status(201).json(newPlaylist);
+});
+
+// Add a song to a playlist
+app.post("/api/v1/playlists/:playlistId/songs/:songId", (req, res) => {
+  const playlistId = parseInt(req.params.playlistId);
+  const songId = parseInt(req.params.songId);
+
+  // Find the playlist
+  const playlist = playlists.find((p) => p.id === playlistId);
+  if (!playlist) {
+    return res.status(404).json({ error: "Playlist not found." });
+  }
+
+  // Find the song
+  const song = songs.find((s) => s.id === songId);
+  if (!song) {
+    return res.status(404).json({ error: "Song not found." });
+  }
+
+  // Check if song is already in the playlist
+  if (playlist.songIds.includes(songId)) {
+    return res.status(400).json({ error: "Song already in playlist." });
+  }
+
+  // Add song to the playlist
+  playlist.songIds.push(songId);
+
+  res.json(playlist);
+});
 
 /* --------------------------
 
