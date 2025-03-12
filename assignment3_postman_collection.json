@@ -1,0 +1,201 @@
+{
+    "info": {
+        "name": "Music System API Collection",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_postman_id": "a1f3e8c4-1234-5678-90ab-cdef12345678"
+    },
+    "item": [
+        {
+            "name": "Songs",
+            "item": [
+                {
+                    "name": "Get All Songs",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/songs?filter=",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "songs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "",
+                                    "description": "Optional: enter a filter string to search songs by title or artist (case-insensitive)"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create New Song",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Hey Jude\",\n  \"artist\": \"The Beatles\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/songs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "songs"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Song (PATCH)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Updated Title\",\n  \"artist\": \"Updated Artist (optional)\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/songs/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "songs",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Song",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/songs/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "songs",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Playlists",
+            "item": [
+                {
+                    "name": "Get All Playlists",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/playlists",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "playlists"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Specific Playlist",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/playlists/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "playlists",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create New Playlist",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"My Favorite Songs\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/playlists",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "playlists"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Song to Playlist",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/playlists/1/songs/2",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "playlists",
+                                "1",
+                                "songs",
+                                "2"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000/api/v1"
+        }
+    ]
+}
