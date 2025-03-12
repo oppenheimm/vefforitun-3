@@ -72,33 +72,29 @@ let nextPlaylistId = 4;
 
 // Define routes for the /api/v1/songs endpoint.
 app.route(`${basePath}/songs`)
-  // GET: Retrieve all songs, with optional filtering.
+  // GET: Retrieve all songs
   .get((req, res) => {
-    // Extract filter query parameter (if provided) to search for songs by title or artist.
+    // filter songs
     let { filter } = req.query;
     let filteredSongs = songs;
     if (filter) {
-      // Convert filter string to lower case for case-insensitive comparison.
       filter = filter.toLowerCase();
-      // Filter songs where the title or artist includes the filter text.
       filteredSongs = songs.filter(
         (song) =>
           song.title.toLowerCase().includes(filter) ||
           song.artist.toLowerCase().includes(filter)
       );
     }
-    // Return the (filtered) list of songs as JSON.
     res.json(filteredSongs);
   })
   // POST: Create a new song.
   .post((req, res) => {
-    // Destructure title and artist from the request body.
     const { title, artist } = req.body;
-    // Ensure both title and artist are provided; if not, respond with a 400 error.
+    //ensures both title and artist are provided
     if (!title || !artist) {
       return res.status(400).json({ error: "Title and artist are required." });
     }
-    // Check for duplicates (case-insensitive) to prevent adding the same song twice.
+    // Check for duplicates
     const exists = songs.some(
       (song) =>
         song.title.toLowerCase() === title.toLowerCase() &&
@@ -107,65 +103,63 @@ app.route(`${basePath}/songs`)
     if (exists) {
       return res.status(400).json({ error: "Song already exists." });
     }
-    // Create a new song object with a unique id and the provided title and artist.
+    // Create song
     const newSong = { id: nextSongId++, title, artist };
-    songs.push(newSong); // Add the new song to the songs array.
-    // Respond with the new song and a 201 Created status.
+    songs.push(newSong);
     res.status(201).json(newSong);
   })
-  // Handle any unsupported HTTP methods on the /songs endpoint.
+  // Handle any unsupported methods on /songs endpoint.
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /songs" });
   });
 
-// Define routes for operations on individual songs at /api/v1/songs/:id.
+// Define routes for operations on individual songs /api/v1/songs/:id.
 app.route(`${basePath}/songs/:id`)
-  // PATCH: Partially update a song.
+  // PATCH: update a  song
   .patch((req, res) => {
-    // Parse the song id from the URL and validate that it is a number.
+    // validate songId
     const songId = parseInt(req.params.id);
     if (isNaN(songId)) {
       return res.status(400).json({ error: "Invalid song id provided." });
     }
-    // Destructure possible updates (title and/or artist) from the request body.
     const { title, artist } = req.body;
-    // Find the song with the matching id.
+    // Find song
     const song = songs.find((s) => s.id === songId);
     if (!song) {
       return res.status(404).json({ error: "Song not found." });
     }
-    // If no fields are provided to update, return an error.
+    // error if no fields
     if (!title && !artist) {
-      return res.status(400).json({ error: "At least one field (title or artist) is required." });
+      return res.status(400).json({ error: "At least one field is required." });
     }
-    // Update the song's properties if new values are provided.
+    // Update the song's properties
     if (title) song.title = title;
     if (artist) song.artist = artist;
-    // Return the updated song as confirmation.
+    // Return the updated song
     res.json(song);
   })
-  // DELETE: Remove a song if it is not being used in any playlist.
+  // DELETE: Removes a song if not used in any playlist
   .delete((req, res) => {
-    // Validate and parse the song id.
+    // Validate and parse the song id
     const songId = parseInt(req.params.id);
     if (isNaN(songId)) {
       return res.status(400).json({ error: "Invalid song id provided." });
     }
-    // Locate the index of the song in the songs array.
+    // locates song
     const songIndex = songs.findIndex((s) => s.id === songId);
     if (songIndex === -1) {
       return res.status(404).json({ error: "Song not found." });
     }
-    // Check if the song is referenced in any playlist's songIds.
+    // check if song in playlist
     const songInPlaylist = playlists.some((playlist) => playlist.songIds.includes(songId));
     if (songInPlaylist) {
       return res.status(400).json({ error: "Cannot delete song. It is used in a playlist." });
     }
-    // Remove the song from the songs array and return the deleted song.
+    // Deletes song
     const deletedSong = songs.splice(songIndex, 1)[0];
     res.json(deletedSong);
   })
-  // Handle any unsupported HTTP methods for individual songs.
+  // Handle any unsupported HTTP for songs.
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /songs/:id" });
   });
@@ -174,100 +168,99 @@ app.route(`${basePath}/songs/:id`)
        PLAYLISTS ENDPOINTS    
 -------------------------- */
 
-// Define routes for the /api/v1/playlists endpoint.
+// Define routes for /api/v1/playlists endpoint
 app.route(`${basePath}/playlists`)
-  // GET: Retrieve all playlists.
+  // GET: Retrieve all playlists
   .get((req, res) => {
-    // Return all playlists (each contains id, name, and songIds).
+    // Return all playlists
     res.json(playlists);
   })
   // POST: Create a new playlist.
   .post((req, res) => {
-    // Extract the playlist name from the request body.
+    // Extract the playlist name
     const { name } = req.body;
-    // Validate that a name is provided.
+    // Validate that a name
     if (!name) {
       return res.status(400).json({ error: "Playlist name is required." });
     }
-    // Check for duplicate playlist names (case-insensitive).
+    // Check for duplicates
     const exists = playlists.some((p) => p.name.toLowerCase() === name.toLowerCase());
     if (exists) {
       return res.status(400).json({ error: "Playlist name already exists." });
     }
-    // Create a new playlist object with a unique id and an empty songIds array.
+    // Creates a new playlist object
     const newPlaylist = { id: nextPlaylistId++, name, songIds: [] };
     playlists.push(newPlaylist);
-    // Return the new playlist with a 201 Created status.
     res.status(201).json(newPlaylist);
   })
-  // Handle unsupported HTTP methods on the /playlists endpoint.
+  // Handles unsupported HTTP on /playlists endpoint.
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /playlists" });
   });
 
-// Define routes for operations on individual playlists at /api/v1/playlists/:id.
+// routes for operations on playlists /api/v1/playlists/:id.
 app.route(`${basePath}/playlists/:id`)
-  // GET: Retrieve a specific playlist, including full details of each song.
+  // GET: Retrieves playlists with full song details
   .get((req, res) => {
-    // Parse and validate the playlist id from the URL.
+    // Parse and validates the playlist id
     const playlistId = parseInt(req.params.id);
     const playlist = playlists.find((p) => p.id === playlistId);
     if (!playlist) {
       return res.status(404).json({ error: "Playlist not found." });
     }
-    // For each song id in the playlist, map it to its full song object.
+    // maps songs in playlist
     const playlistWithSongs = {
       ...playlist,
       songs: playlist.songIds
         .map((songId) => songs.find((song) => song.id === songId))
-        .filter(Boolean), // Filter out any undefined results.
+        .filter(Boolean),
     };
-    // Return the playlist with complete song details.
+    // Return the playlist with all song details
     res.json(playlistWithSongs);
   })
-  // Handle unsupported HTTP methods for individual playlists.
+  // Handle unsupported HTTP for playlists
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /playlists/:id" });
   });
 
-// Define a route to add a song to an existing playlist at /api/v1/playlists/:playlistId/songs/:songId.
+// route to add a song to an existing playlist /api/v1/playlists/:playlistId/songs/:songId
 app.route(`${basePath}/playlists/:playlistId/songs/:songId`)
-  // POST: Add a song to a specific playlist.
+  // POST: Adds song to playlist
   .post((req, res) => {
-    // Validate that both playlistId and songId are numbers.
+    // Validates ids are numbers
     const playlistId = parseInt(req.params.playlistId);
     const songId = parseInt(req.params.songId);
     if (isNaN(playlistId) || isNaN(songId)) {
       return res.status(400).json({ error: "Invalid playlist id or song id provided." });
     }
-    // Find the playlist by id.
+    // Find playlist by id
     const playlist = playlists.find((p) => p.id === playlistId);
     if (!playlist) {
       return res.status(404).json({ error: "Playlist not found." });
     }
-    // Find the song by id.
+    // Find song by id
     const song = songs.find((s) => s.id === songId);
     if (!song) {
       return res.status(404).json({ error: "Song not found." });
     }
-    // Check if the song is already in the playlist.
+    // Check if the song already in playlist
     if (playlist.songIds.includes(songId)) {
       return res.status(400).json({ error: "Song already in playlist." });
     }
-    // Add the song id to the playlist's songIds array.
+    // Add the song id to the playlists songIds array
     playlist.songIds.push(songId);
 
-    // Build a response object that includes the full song details in the playlist.
+    // Build a response object that includes song details in the playlist
     const playlistWithSongs = {
       ...playlist,
       songs: playlist.songIds
         .map((id) => songs.find((song) => song.id === id))
         .filter(Boolean),
     };
-    // Return the updated playlist.
+    // Return the updated playlist
     res.json(playlistWithSongs);
   })
-  // Handle unsupported HTTP methods for this route.
+  // Handles unsupported HTTP
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /playlists/:playlistId/songs/:songId" });
   });
