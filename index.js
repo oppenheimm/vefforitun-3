@@ -108,12 +108,11 @@ app.route(`${basePath}/songs`)
     songs.push(newSong);
     res.status(201).json(newSong);
   })
-  // Handle any unsupported methods on /songs endpoint.
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /songs" });
   });
 
-// Define routes for operations on individual songs /api/v1/songs/:id.
+// Define routes for operations on individual songs /api/v1/songs/:id
 app.route(`${basePath}/songs/:id`)
   // PATCH: update a  song
   .patch((req, res) => {
@@ -159,7 +158,6 @@ app.route(`${basePath}/songs/:id`)
     const deletedSong = songs.splice(songIndex, 1)[0];
     res.json(deletedSong);
   })
-  // Handle any unsupported HTTP for songs.
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /songs/:id" });
   });
@@ -175,11 +173,11 @@ app.route(`${basePath}/playlists`)
     // Return all playlists
     res.json(playlists);
   })
-  // POST: Create a new playlist.
+  // POST: Create a new playlist
   .post((req, res) => {
     // Extract the playlist name
     const { name } = req.body;
-    // Validate that a name
+    // validate name
     if (!name) {
       return res.status(400).json({ error: "Playlist name is required." });
     }
@@ -193,12 +191,11 @@ app.route(`${basePath}/playlists`)
     playlists.push(newPlaylist);
     res.status(201).json(newPlaylist);
   })
-  // Handles unsupported HTTP on /playlists endpoint.
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /playlists" });
   });
 
-// routes for operations on playlists /api/v1/playlists/:id.
+// routes for operations on playlists /api/v1/playlists/:id
 app.route(`${basePath}/playlists/:id`)
   // GET: Retrieves playlists with full song details
   .get((req, res) => {
@@ -218,7 +215,6 @@ app.route(`${basePath}/playlists/:id`)
     // Return the playlist with all song details
     res.json(playlistWithSongs);
   })
-  // Handle unsupported HTTP for playlists
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /playlists/:id" });
   });
@@ -260,7 +256,6 @@ app.route(`${basePath}/playlists/:playlistId/songs/:songId`)
     // Return the updated playlist
     res.json(playlistWithSongs);
   })
-  // Handles unsupported HTTP
   .all((req, res) => {
     res.status(405).json({ error: "Method not allowed on /playlists/:playlistId/songs/:songId" });
   });
