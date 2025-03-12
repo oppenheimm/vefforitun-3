@@ -90,9 +90,11 @@ app.route(`${basePath}/songs`)
   // POST: Create a new song.
   .post((req, res) => {
     const { title, artist } = req.body;
-    //ensures both title and artist are provided
-    if (!title || !artist) {
-      return res.status(400).json({ error: "Title and artist are required." });
+    // Ensure both title and artist are provided and are strings.
+    if (!title || !artist || typeof title !== "string" || typeof artist !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Title and artist are required and must be strings." });
     }
     // Check for duplicates
     const exists = songs.some(
@@ -177,9 +179,9 @@ app.route(`${basePath}/playlists`)
   .post((req, res) => {
     // Extract the playlist name
     const { name } = req.body;
-    // validate name
-    if (!name) {
-      return res.status(400).json({ error: "Playlist name is required." });
+    // Validate that name exists and is a string
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ error: "Playlist name is required and must be a string." });
     }
     // Check for duplicates
     const exists = playlists.some((p) => p.name.toLowerCase() === name.toLowerCase());
@@ -219,31 +221,32 @@ app.route(`${basePath}/playlists/:id`)
     res.status(405).json({ error: "Method not allowed on /playlists/:id" });
   });
 
-// route to add a song to an existing playlist /api/v1/playlists/:playlistId/songs/:songId
+
+// Route to add a song to an existing playlist /api/v1/playlists/:playlistId/songs/:songId
 app.route(`${basePath}/playlists/:playlistId/songs/:songId`)
-  // POST: Adds song to playlist
-  .post((req, res) => {
-    // Validates ids are numbers
+  // PATCH: Adds song to playlist
+  .patch((req, res) => {
+    // Validate that playlistId and songId are numbers
     const playlistId = parseInt(req.params.playlistId);
     const songId = parseInt(req.params.songId);
     if (isNaN(playlistId) || isNaN(songId)) {
-      return res.status(400).json({ error: "Invalid playlist id or song id provided." });
+      return res.status(400).json({ path: req.originalUrl, error: "Invalid playlist id or song id provided." });
     }
     // Find playlist by id
     const playlist = playlists.find((p) => p.id === playlistId);
     if (!playlist) {
-      return res.status(404).json({ error: "Playlist not found." });
+      return res.status(404).json({ path: req.originalUrl, error: "Playlist not found." });
     }
     // Find song by id
     const song = songs.find((s) => s.id === songId);
     if (!song) {
-      return res.status(404).json({ error: "Song not found." });
+      return res.status(404).json({ path: req.originalUrl, error: "Song not found." });
     }
-    // Check if the song already in playlist
+    // Check if the song already exists in the playlist
     if (playlist.songIds.includes(songId)) {
-      return res.status(400).json({ error: "Song already in playlist." });
+      return res.status(400).json({ path: req.originalUrl, error: "Song already in playlist." });
     }
-    // Add the song id to the playlists songIds array
+    // Add the song id to the playlist's songIds array
     playlist.songIds.push(songId);
 
     // Build a response object that includes song details in the playlist
